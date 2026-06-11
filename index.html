@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Summarizer</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFF7ED;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #FB923C;
+        }
+
+        h3 {
+            text-align: center;
+            margin-top: -20px;
+            margin-bottom: 40px;
+        }
+
+        textarea {
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 10px 15px;
+            background-color: #FB923C;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #F97316;
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        #summary-output {
+            display: none;
+            margin-top: 20px;
+            background: #FFEDD5;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #summary-heading {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        #summary-text {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>Text Summarizer</h1>
+        <h3>Using Hugging Face Transformers</h3>
+
+        <p>Write or paste your content below for quick summarization:</p>
+
+        <form id="summarization-form">
+            <textarea
+                id="dialogue-text"
+                placeholder="Enter text to summarize..."
+                required>
+            </textarea>
+
+            <button type="submit">
+                Summarize
+            </button>
+        </form>
+
+        <div id="summary-output">
+            <h3 id="summary-heading">Content Summary</h3>
+            <p id="summary-text"></p>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById("summarization-form")
+        .addEventListener("submit", async (e) => {
+
+            e.preventDefault();
+
+            const dialogueinput =
+                document.getElementById("dialogue-text");
+
+            const summaryText =
+                document.getElementById("summary-text");
+
+            const summaryOutput =
+                document.getElementById("summary-output");
+
+            const submitbutton =
+                e.target.querySelector("button");
+
+            const dialogue =
+                dialogueinput.value.trim();
+
+            if (!dialogue) return;
+
+            summaryOutput.style.display = "block";
+            summaryText.innerText = "Processing...";
+
+            submitbutton.disabled = true;
+
+            try {
+
+                const response = await fetch("/summarize/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        dialogue
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Server Error: ${response.status}`
+                    );
+                }
+
+                const data = await response.json();
+
+                summaryText.innerText =
+                    data.summary || "No summary returned.";
+
+            } catch (error) {
+
+                summaryText.innerText =
+                    `Error: ${error.message}`;
+
+            } finally {
+
+                submitbutton.disabled = false;
+
+            }
+        });
+    </script>
+</body>
+</html>
